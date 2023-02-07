@@ -1,0 +1,94 @@
+#!/bin/bash
+#----------------------------------------------------------
+# Venessa Kuchenik
+# 10/24/2022
+# CSE224
+# PA3
+#----------------------------------------------------------
+# This is a stick picking game where the player can specify
+# the amount of sticks to play with. You can take up to 4
+# sticks at once and the one to take the last stick wins.
+#----------------------------------------------------------
+# Printing Sticks
+
+function displaySticks						#moved to top of file bc funct is used earliest
+{
+        i=0
+        numSticks=$1						#variable passed form main
+        while [[ $i -lt $numSticks ]]
+        do
+            echo -n "|"
+            i=$((i+1))
+        done
+        echo -n " "  						#puts space between pipes and number
+        echo "("$numSticks")"
+}
+#----------------------------------------------------------
+# Command line arguments
+
+echo "Welcome to the stick picking game!" 
+
+if [[ "$#" -ne 1 ]]						#if there are no other command line arg, sticks=20
+then
+	numSticks=20
+	echo "Starting with 20 sticks."
+	displaySticks $numSticks
+elif [[ "$1" -ge 5 ]]						#if command line arg is <= 5, sticks=plyrs choice
+then
+	numSticks=$(($1))
+	echo "Starting with $numSticks sticks."
+	displaySticks $numSticks
+else
+	echo "Can't play with less than 5 sticks!"
+	exit							#if plyr tries to play with less then 5, game quits
+fi
+#----------------------------------------------------------
+# Computers Move Function
+
+function compMove
+{
+        numSticks=$1	 					#passing variable from main of number of sticks
+	if [[ $numSticks -ge 5 ]]				#if numsticks is <= 5, then use algorithm
+	then
+        alg=$((numSticks%5))				#algorithm is numSticks/5 -> numsticks-remainder
+		if [[ $alg -eq 0 ]]				#if sticks mod 5 is 0, comp will take 1
+		then
+			numSticks=$((numSticks-1))
+		fi
+        numSticks=$((numSticks-alg)) 			#no need for to alter for when alg=0
+	fi
+	if [[ $numSticks -lt 4 ]]				#if numSticks < 5, just take the rest of the sticks
+	then
+		numSticks=$((numSticks-numSticks)) 
+	fi	
+	echo $numSticks        					#returning value of numSticks to main
+}
+#----------------------------------------------------------
+# MAIN PROGRAM
+
+while [[ $numSticks -ne -1 ]]					#just an infinite loop/safety net in case numSticks drops below 0
+do
+	numSticks=`compMove $numSticks` 			#returns the value of numSticks after compMove
+	echo "Computers turn:"
+	displaySticks $numSticks				#displays number of sticks left
+	if [[ "$numSticks" -eq 0 ]]				#if at end of compMove sticks=0, comp wins
+	then
+		echo "Computer wins this round!"
+		exit
+	fi
+
+	echo -n "Enter a number of sticks to remove: "
+	read plyrMove
+	while [[ $plyrMove -lt 1 ]] || [[ $plyrMove -gt 4 ]] 	#if outside of 1-4 range, will ask again
+	do
+		echo -n "Please enter a number 1-4! "
+		read plyrMove
+	done
+	numSticks=$((numSticks-plyrMove))
+	displaySticks $numSticks
+	if [[ $numSticks -eq 0 ]]				#if sticks=0 after plyrs turn, they win
+	then
+		echo "Player wins this round!"
+		exit
+	fi
+done
